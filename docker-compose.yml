@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: healthtrack_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: healthtrack
+      POSTGRES_PASSWORD: healthtrack_secret
+      POSTGRES_DB: healthtrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healthtrack -d healthtrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthtrack_app
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://healthtrack:healthtrack_secret@postgres:5432/healthtrack?schema=public"
+      JWT_SECRET: "healthtrack-production-dedicated-secret-2026"
+      PORT: 3000
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

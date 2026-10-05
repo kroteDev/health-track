@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  name               String
+  passwordHash       String
+  birthDate          DateTime?
+  gender             String              @default("OTHER")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  glucoseLogs        GlucoseLog[]
+  bloodPressureLogs  BloodPressureLog[]
+  weightLogs         WeightLog[]
+  heightLogs         HeightLog[]
+
+  @@map("users")
+}
+
+model GlucoseLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value      Float
+  context    String   @default("FASTING")
+  notes      String?
+  measuredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, measuredAt])
+  @@map("glucose_logs")
+}
+
+model BloodPressureLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  systolic   Int
+  diastolic  Int
+  pulse      Int?
+  notes      String?
+  measuredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, measuredAt])
+  @@map("blood_pressure_logs")
+}
+
+model WeightLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weightKg   Float
+  notes      String?
+  measuredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, measuredAt])
+  @@map("weight_logs")
+}
+
+model HeightLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  heightCm   Float
+  notes      String?
+  measuredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, measuredAt])
+  @@map("height_logs")
+}
